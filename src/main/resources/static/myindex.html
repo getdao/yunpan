@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link href="http://cdn.bootcss.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="https://cdn.bootcss.com/jquery/3.3.1/jquery.js"></script>
+    <script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="https://cdn.bootcss.com/bootbox.js/4.4.0/bootbox.js"></script>
+    <script src="https://cdn.bootcss.com/angular.js/1.6.9/angular.js"></script>
+    <script src="https://cdn.bootcss.com/jquery/1.4.0/jquery.js"></script>
+    <script src="js/jquery.form.js"></script>
+    <!--<link rel="stylesheet" type="text/css" href="https://cdn.bootcss.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css">-->
+    <!--<script src="https://cdn.bootcss.com/limonte-sweetalert2/7.21.1/sweetalert2.all.js"></script>--> <!--模拟对话框-->
+
+    <meta charset="UTF-8">
+    <title>我的文件</title>
+
+</head>
+<!--这是进度条的显示位置-->
+<div class="progress" id="progressHide">
+    <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="60"
+         aria-valuemin="0" aria-valuemax="100" style="width: 0%;" id="progressBar">
+        <span class="sr-only">40% 完成</span>
+    </div>
+</div>
+<!--这是form表单-->
+<form id="uploadTaskForm" action="/FileUp" enctype="multipart/form-data" method="post">
+    <input type="file" id="upFile" name="upFile" multiple="multiple"/>
+    <button type="button" onclick="saveTask()">上传 </button>
+</form>
+<tr>
+    <button type="button" onclick="newFolder()" >新建文件夹</button>
+<a href="Collect.html" target="mainFrame" onFocus="this.blur()">我的收藏</a>
+<a href="myshare.html" target="mainFrame" onFocus="this.blur()">我的分享</a>
+<a href="Allshare.html" target="mainFrame" onFocus="this.blur()">分享中心</a>
+    <button type="button" id="img" onclick="">图片</button>
+    <button type="button" id="video" onclick="">视频</button>
+    <button type="button" id="word" onclick="">文档</button>
+    <button type="button" id="other" onclick="">其他文件</button>
+    <br>
+    <input type="text" id="find"/>
+    <button onclick="find()" value="">查找</button>
+    <br>
+</tr>
+<table class="table table-bordered" id='tabletest'>
+    <thead>
+        <tr>
+            <th><input type="checkbox"/>文件名字</th>
+            <th>类型</th>
+            <th>日期</th>
+            <th>分享状态</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody id="tbodyTest">
+
+    </tbody>
+</table>
+
+</body>
+<script>
+        $.ajax({
+            url: 'http://localhost:7668/findAllFile',
+            type: 'get',
+            dataType: 'json',
+            success: function (data) {
+
+                //方法中传入的参数data为后台获取的数据
+                for (var i=0;i<data.length; i++) //data.data指的是数组，数组里是8个对象，i为数组的索引
+                {
+                    var tr;
+                    tr='<td>'+data[i].filename+'</td>'+'<td>'+data[i].filetype+'</td>'+'<td>'+data[i].filedate+'</td>'+'<td>'+data[i].filestatus+'</td>' +
+                        '<td >' +
+                        '<button onclick="sharefile('+ data[i].fileid+')">分享文件</button>'+
+                        '<button onclick="FileDelete(&quot;'+data[i].filename+'&quot;,'+ data[i].fileid+')">文件删除</button>'+
+                        '<button onclick="fileload(&quot;'+data[i].filename+'&quot;,&quot;'+data[i].filetype+'&quot;)">文件下载</button>'+
+                        '</td>'
+                    $("#tbodyTest").append('<tr>'+tr+'</tr>')
+                }
+            }
+
+        })
+
+        //下载文件
+        function fileload(filename,filetype){
+            if(filetype=="文件夹"){
+                alert("非常抱歉，文件夹目前不支持下载！");
+            }else {
+                var url = "http://localhost:7668/FileDownLoad";
+                var form = $("<form></form>>").attr("action",url).attr("method","get");
+                form.append($("<input></input>").attr("type", "hidden").attr("name", "fileName").attr("value", filename));
+                form.appendTo('body').submit().remove();
+            }
+        }
+        //删除文件
+        function FileDelete(filename,fileid) {
+            var choice = confirm("你确认删除吗？删除了就没了哦！");
+            if(choice==true){
+                $.ajax({
+                    url:'http://localhost:7668/FileDelete',
+                    type:'get',
+                    dataType:'text',
+                    data:{fileName:filename,fileid:fileid},
+                    success:function (data) {
+                        alert(data)
+                        window.location.reload();
+                    }
+                });
+            }
+        }
+
+        function sharefile(a) {
+            $.ajax({
+            //分享文件ajax方法 ....
+                url: 'http://localhost:7668/addshare?fileid=' + a,
+                type: 'get',
+                dataType: 'text',
+                success: function (data) {
+                    alert(data)
+                    location.href="myindex.html";
+                }
+            })
+        }
+        function find() {
+            $.ajax({
+                //分享文件ajax方法 ....
+                url: 'http://localhost:7668/findByfilename',
+                data:{filename:$("#find").val()} ,
+                type: 'get',
+                dataType: 'json',
+                success: function (data) {
+                    $("#tbodyTest").remove();
+                    $("#tabletest").append('<tbody id="tbodyTest"></tbody>');
+                    //alert(data)
+                    for (var i=0;i<data.length; i++) //data.data指的是数组，数组里是8个对象，i为数组的索引
+                    {
+                        var tr;
+                        tr='<td>'+data[i].filename+'</td>'+'<td>'+data[i].filetype+'</td>'+'<td>'+data[i].filedate+'</td>'+'<td>'+data[i].filestatus+'</td>' +'<td ><button onclick="sharefile('+ data[i].fileid+')">分享文件</button></td>'
+                        $("#tabletest").append("<tr>"+tr+"</tr>");
+                    }
+                }
+            })
+        }
+
+        function saveTask() {
+            var options = {
+//提交表单之前做的验证
+                beforeSubmit:function(){
+                    var file = $('#upFile').get(0).files[0];
+                    var taskFile =  $("#upFile").val();
+                    if(taskFile==null || taskFile==''){
+                        alert("上传文件不能为空")
+                        return false  //表示不可以提交表单
+                    } else if(file){
+                        if(file.size>1024*1024*10){
+                            alert("上传文件不能超过10M")
+                            return false
+                        }
+                    } else{
+                        return true    //可以提交表单
+                    }
+                },
+//服务器返回结果处理
+                success:function(data){
+                    alert(data)
+                    window.location.reload()
+                },
+//进度条的监听器
+                xhr: function(){
+                    var xhr = $.ajaxSettings.xhr();
+                    if(onprogress && xhr.upload) {
+                        xhr.upload.addEventListener("progress" , onprogress, false);
+                        return xhr;
+                    }
+                }
+            }
+
+//提交表单（uploadTaskForm --->表单的ID）
+            $("#uploadTaskForm").ajaxSubmit(options);
+        }
+        function onprogress(evt){
+            //侦查附件上传情况
+            //通过事件对象侦查
+            //该匿名函数表达式大概0.05-0.1秒执行一次
+            // console.log(evt.loaded);  //已经上传大小情况
+            //evt.total; 附件总大小
+            var loaded = evt.loaded;
+            var tot = evt.total;
+            var per = Math.floor(100*loaded/tot);  //已经上传的百分比
+            var son = document.getElementById('progressBar');
+            son.innerHTML = per+"%";
+            son.style.width=per+"%";
+        }
+        //新建文件夹
+        function newFolder(){
+            bootbox.dialog({
+                title:'新建文件夹',
+                message: '文件夹名:<input id = "add_folder" placeholder="请输入文件夹名字">',
+                buttons: {
+                    confirm: {
+                        label: '确认',
+                        callback:function(){
+                            var name = $("#add_folder").val();
+                            if(name==null || name==''){
+                                alert("文件夹名不能为空")
+                            }else {
+                                $.ajax({
+                                    url: 'http://localhost:7668/NewFolder',
+                                    type: 'get',
+                                    dataType: 'text',
+                                    data: {fileName: $("#add_folder").val()},
+                                    success: function (data) {
+                                        alert(data);
+                                        window.location.reload();
+                                    }
+                                });
+                            }
+                        },
+                    },
+                    cancel: {
+                        label: '取消',
+                        callback:function(){
+                        }
+                    },
+
+                }
+            });
+        }
+
+
+</script>
+</html>

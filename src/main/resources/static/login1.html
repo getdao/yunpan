@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" type="text/css" href="https://cdn.bootcss.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css">
+    <script src="https://cdn.bootcss.com/jquery/1.4.0/jquery.js"></script>
+    <meta charset="UTF-8">
+    <title>登录测试</title>
+</head>
+<body>
+<form class="tt" >
+    <fieldset>
+        <ul>
+            <li class="frame_style form_error"><label class="user_icon"></label><input name="username" type="text" id="username" /><i>用户名</i></li>
+            <li class="frame_style form_error"><label class="password_icon"></label><input name="userpassword" type="password" id="userpassword" /><i>密码</i></li>
+
+        </ul>
+        <div class="space"></div>
+
+        <div class="clearfix">
+            <button type="button" class="width-35 pull-right btn btn-sm btn-primary btn btn-primary btn-lg" data-toggle="modal" data-target="#myModal">
+                <i class="icon-key"></i>
+                注册
+            </button>
+
+            <button type="button" class="width-35 pull-right btn btn-sm btn-primary" id="login_btn" onclick="login1()" >
+                <i class="icon-key"></i>
+                登录
+            </button>
+        </div>
+
+        <div class="space-4"></div>
+
+    </fieldset>
+</form>
+</body>
+<script>
+    function login1() {
+
+   /*     var username=$("#username").val();
+        var password=$("#userpassword").val();*/
+        $.ajax({
+            url: 'http://localhost:7668/dologin',
+            data:{username:$("#username").val(), userpassword:$("#userpassword").val()} ,
+            type: 'get',
+           dataType: 'text',
+            success: function (data) {
+                location.href="myindex.html";
+            }
+        })
+    }
+    function allshare() {
+
+        /*     var username=$("#username").val();
+             var password=$("#userpassword").val();*/
+        $.ajax({
+            url: 'http://localhost:7668/findAllshare',
+            data:{username:$("#username").val(), userpassword:$("#userpassword").val()} ,
+            type: 'get',
+            dataType: 'json',
+            success: function (data) {
+                location.href="myindex.html";
+            }
+        })
+    }
+</script>
+</html>
