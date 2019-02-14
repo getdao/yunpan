@@ -39,7 +39,11 @@
             for (var i=0;i<data.length; i++) //data.data指的是数组，数组里是8个对象，i为数组的索引
             {
                 var tr;
-                tr='<td>'+data[i].filename+'</td>'+'<td>'+data[i].filetype+'</td>' +'<td ><button onclick="delcollect('+ data[i].collectid+')">取消收藏</button></td>'
+                tr='<td>'+data[i].filename+'</td>'+'<td>'+data[i].filetype+
+                    '</td>' +
+                    '<td ><button onclick="delcollect('+ data[i].collectid+')">取消收藏</button>'+
+                    '<button onclick="fileload(&quot;'+data[i].filename+'&quot;,&quot;'+data[i].filetype+'&quot;,'+data[i].userid+')">文件下载</button>' +
+                    '</td>'
                 $("#tabletest").append('<tr>'+tr+'</tr>')
             }
         }
@@ -56,6 +60,16 @@
                 location.href="Collect.html";
             }
         })
+    }
+
+    //文件下载
+    function fileload(filename,filetype,userid) {
+        if(filetype=="文件夹"){
+            alert("非常抱歉,文件夹目前不支持下载!");
+        }else {
+            var  actionUrl ="http://localhost:7668/LoadFile?fileName="+filename+"&otherid="+userid;
+            window.open(actionUrl);
+        }
     }
 </script>
 </html>

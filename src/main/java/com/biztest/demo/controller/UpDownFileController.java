@@ -173,7 +173,7 @@ public class UpDownFileController {
             if (file.delete()) {
                 ddd = "删除成功";
                 fileUpDownService.delFile(fileid);
-                LOGGER.info("用户"+user.getUsername() + "删除了文件" + fileName);
+                LOGGER.info("用户"+user.getUsername() + "删除了文件“" + fileName+"”");
             } else {
                 ddd = "删除失败";
             }
@@ -204,7 +204,68 @@ public class UpDownFileController {
             fileUpDownDAO.save(f3);
             msg = "创建成功！";
         }
-
         return msg;
+    }
+
+    //下载他人的文件
+    @RequestMapping(value = "/LoadFile" ,produces = "application/text;charset=utf-8")
+    public void LoadFile(HttpSession HttpSession,HttpServletRequest request, HttpServletResponse response, @RequestParam("fileName")String fileName, @RequestParam("otherid")String otherid){
+        UserEntity user = (UserEntity) HttpSession.getAttribute("user");
+        System.out.print(fileName);
+        System.out.print(otherid);
+        if (fileName != null) {
+            //设置文件路径
+            String realFileName = otherid + "." +fileName;
+            System.out.print(realFileName);
+            String fullPath = "D://upload//"+realFileName;
+            File file = new File(fullPath);
+            if (file.exists()) {
+                String[] arr = realFileName.split("\\.");
+                StringBuffer loadFileName = new StringBuffer();
+                for(int i=1;i<arr.length-1;i++){
+                    loadFileName.append(arr[i]+".");
+                }
+                loadFileName.append(arr[arr.length-1]);
+                response.setContentType("application/force-download");// 设置强制下载不打开
+                try{
+                    response.addHeader("Content-Disposition", "attachment;fileName=" + new String( fileName.getBytes("utf-8"), "ISO8859-1" ));// 设置文件名,解决中文乱码
+                }catch (IOException e){
+                    e.printStackTrace();
+                }
+                byte[] buffer = new byte[1024];
+                FileInputStream fis = null;
+                BufferedInputStream bis = null;
+                try {
+                    fis = new FileInputStream(file);
+                    bis = new BufferedInputStream(fis);
+                    OutputStream os = response.getOutputStream();
+                    int i = bis.read(buffer);
+                    while (i != -1) {
+                        os.write(buffer, 0, i);
+                        i = bis.read(buffer);
+                    }
+                    LOGGER.info("用户"+user.getUsername() + "下载了用户id为"+otherid+"的文件" + fileName);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                } finally {
+                    if (bis != null) {
+                        try {
+                            bis.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    if (fis != null) {
+                        try {
+                            fis.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }else{
+                System.out.print("文件不存在");
+            }
+        }
     }
 }
